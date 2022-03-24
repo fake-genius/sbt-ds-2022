@@ -1,5 +1,7 @@
 package requests.locks;
 
+import javax.persistence.*;
+
 public class BankPessimistic {
     private final Accounts accounts;
     private final EntityManagerFactory entityManagerFactory;
@@ -26,7 +28,7 @@ public class BankPessimistic {
             toAcc.changeBalance(money);
             entityManager.getTransaction().commit();
             entityManager.close();
-        } catch (PersistenceException) {
+        } catch (PersistenceException e) {
             System.out.println("Transaction failed");
         }
     }

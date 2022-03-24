@@ -31,7 +31,7 @@ public class BankOptimistic {
             entityManager.getTransaction().commit();
 
             entityManager.close();
-        } catch (PersistenceException) {
+        } catch (PersistenceException e) {
             System.out.println("Transaction failed");
         }
     }
