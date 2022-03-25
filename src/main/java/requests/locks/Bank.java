@@ -4,11 +4,9 @@ import javax.persistence.*;
 
 public class Bank {
     private final Accounts accounts;
-    private final EntityManagerFactory entityManagerFactory;
 
     public Bank(Accounts accounts) {
         this.accounts = accounts;
-        this.entityManagerFactory = Persistence.createEntityManagerFactory("org.jbpm.persistence.jp");
     }
 
     public void transferOptimistic(long fromId, long toId, double money) {
@@ -20,22 +18,16 @@ public class Bank {
     }
 
     private void transferLock(long fromId, long toId, double money, LockModeType lockModeType) {
-        EntityManager entityManager = entityManagerFactory.createEntityManager();
         try {
-            var fromAcc = entityManager.find(Account.class, fromId);
-            var toAcc = entityManager.find(Account.class, fromId);
+            var fromAcc = accounts.findById(fromId);
+            var toAcc = accounts.findById(toId);
 
             if (!fromAcc.hasMoney(money)) {
                 throw new IllegalStateException("Acc doesn't have enough money, " + money);
             }
 
-            entityManager.lock(fromAcc, lockModeType);
-            fromAcc.changeBalance(-money);
-            entityManager.getTransaction().commit();
-            entityManager.lock(toAcc, lockModeType);
-            toAcc.changeBalance(money);
-            entityManager.getTransaction().commit();
-            entityManager.close();
+            accounts.changeAccountBalance(fromAcc, -money, lockModeType);
+            accounts.changeAccountBalance(toAcc, money, lockModeType);
         } catch (PersistenceException e) {
             System.out.println("Transaction failed");
         }
